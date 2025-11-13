@@ -14,11 +14,11 @@ First, make sure you have the most recent versions of all the project files.
 
 ```bash
 # If you haven't cloned the project yet:
-git clone [YOUR_REPO_URL]
-cd [REPO_NAME]
+git clone https://github.com/m-mwangi/Formative_3_Group_Work.git
+cd Formative_3_Group_Work
 
 # If you have already cloned it:
-git pull origin main
+git checkout script-setup
 ```
 
 -----
