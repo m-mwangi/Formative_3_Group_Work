@@ -1,180 +1,238 @@
-# Formative_3_Group_Work
+# DQN Agent for Atari Breakout
 
+This project is a submission for our course in Machine Learning. The objective is to train, evaluate, and analyze a Deep Q-Network (DQN) agent to play the Atari game `ALE/Breakout-v5` using the `gymnasium` and `stable_baselines3` libraries.
 
+This document serves as the complete and final report for the assignment.
 
-### **Team Onboarding & Experiment Guide** 🚀
+## Project Structure
 
-We have now finalized the core training and playing scripts.
-
-Your mission is to get your local environment set up, verify it works.
-
-### **Step 1: Get the Latest Code**
-
-First, make sure you have the most recent versions of all the project files.
-
-```bash
-# If you haven't cloned the project yet:
-git clone https://github.com/m-mwangi/Formative_3_Group_Work.git
-cd Formative_3_Group_Work
-
-# If you have already cloned it:
-git checkout script-setup
+```
+/
+├── models/           # Stores all trained .zip models
+├── logs/             # Stores all TensorBoard log files
+├── train.py          # Reusable script for training agents
+├── play.py           # Script for playing/watching trained models
+├── requirements.txt    # All project dependencies
+└── README.md         # This report
 ```
 
------
 
-### **Step 2: Create Your Virtual Environment**
 
-We must all use the *exact same* Python version and libraries.
+## Installation & Setup
 
-1.  **Check Python:** Make sure you have a stable version of Python installed (e.g., **3.10** or **3.11**).
-2.  **Create venv:** In your terminal, from the project's root folder, create your own local virtual environment.
+This project was built using Python `3.11`. A stable version like `3.10` or `3.11` is required.
+
+1.  **Clone the Repository:**
+
+    ```bash
+    git clone https://github.com/m-mwangi/Formative_3_Group_Work.git
+    cd Formative_3_Group_Work
+    ```
+
+2.  **Create a Virtual Environment:**
+
     ```bash
     # On macOS / Linux
     python3 -m venv venv
 
     # On Windows
-    python -m venv .venv
+    python -m venv venv
     ```
-3.  **Activate venv:** You must do this **every time** you work on the project.
+
+3.  **Activate the Environment:**
+
     ```bash
     # On macOS / Linux
-    source .venv/bin/activate
+    source venv/bin/activate
 
     # On Windows (PowerShell)
-    .\.venv\Scripts\Activate.ps1
-
-    # On Windows (Command Prompt)
-    .\.venv\Scripts\activate.bat
+    .\venv\Scripts\Activate.ps1
     ```
-    Your terminal prompt should now start with `(venv)`.
 
------
+4.  **Install Dependencies:**
 
-### **Step 3: Install All Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Now that your venv is active, install all the *exact* library versions from the project file.
+
+
+## Usage
+
+All scripts are run from the command line and are configured using arguments.
+
+### 1\. How to Train an Agent
+
+The `train.py` script is the "factory" for all our experiments. It automatically saves the final model to `models/` and the log files to `logs/` using a name based on the hyperparameters.
+
+**Base Command:**
 
 ```bash
-# This command reads the requirements.txt file and installs everything
-pip install -r requirements.txt
+python train.py --steps [NUMBER_OF_STEPS] [ARGUMENTS]
 ```
 
------
+**Key Arguments:**
 
-### **Step 4: CRITICAL VERIFICATION**
+  * `--steps`: Total training steps (e.g., `250000`).
+  * `--lr`: Learning rate (e.g., `0.0005`).
+  * `--gamma`: Discount factor (e.g., `0.99`).
+  * `--epsilon_decay`: Steps to decay exploration (e.g., `150000`).
+  * `--policy`: Policy to use (`CnnPolicy` or `MlpPolicy`).
 
-This is the most important step. We must confirm your setup is 100% working before you run any long experiments.
-
-**Test 1: Run a short training job.**
-This command will train for only 1000 steps.
+**Example:**
 
 ```bash
-python train.py --steps 1000
+python train.py --steps 250000 --lr 0.0005 --epsilon_decay 150000
 ```
 
-  * **What to expect:** It should run, show a progress bar, and finish in 1-2 minutes. It will save a new `.zip` file in the `models/` folder.
+### 2\. How to Watch an Agent Play
 
-**Test 2: Run the `play.py` script.**
-This confirms you can watch the models you train.
+The `play.py` script loads a saved model file and renders the game in a new window.
 
-1.  **Find your new model:**
+**Command:**
+
+```bash
+python play.py --model "PATH_TO_YOUR_MODEL.zip"
+```
+
+**Example (Using Tab-Complete):**
+The model names are long. Use **Tab** to auto-complete the name.
+
+```bash
+# Type this and press Tab:
+python play.py --model models/policy-CnnPolicy_lr-0.0005
+```
+
+### 3\. How to Evaluate Results
+
+We use **TensorBoard** to read the `logs/` folder and analyze our results.
+
+1.  **Start TensorBoard:**
     ```bash
-    ls models/
+    tensorboard --logdir logs/
     ```
-2.  **Run `play.py` on that model.** Use the **Tab** key to auto-complete the long filename.
-    ```bash
-    # Type 'python play.py --model models/pol' and then press Tab
-    python play.py --model "models/YOUR-MODEL-NAME.zip"
-    ```
-
-<!-- end list -->
-
-  * **What to expect:** A game window for `Breakout` should pop up and you'll see the agent (playing badly) for 5 episodes.
-
-> **If both tests pass, you are ready\!** If you get *any* error, stop and ask the group for help.
+2.  **Open in Browser:** Open the URL in your terminal (usually `http://localhost:6006/`).
+3.  **Analyze:** Find the **`rollout/ep_rew_mean`** graph for each run to find its stable, average score.
 
 
-Here is the 40-experiment strategic plan, breaking down the tables and the reasoning for each group.
 
-### 🎯 The Overall Strategy
+## Core Concept: `CnnPolicy` vs. `MlpPolicy`
 
-The plan is designed as a **systematic "grid search,"** where each team member becomes a "specialist" isolating a specific set of variables. This is far better than random guessing, as it will allow you to see the direct impact of each hyperparameter.
+Before tuning, we confirmed our understanding of the required architecture.
 
-* **Baseline (Control):** `lr=0.0001`, `gamma=0.99`, `batch_size=32`, `epsilon_decay=250000`, `epsilon_end=0.05`. Many runs will use these defaults to isolate other variables.
+  * **`CnnPolicy` (Convolutional Neural Network):** This policy is designed to read images. It understands 2D relationships, such as the ball's position relative to the paddle.
+  * **`MlpPolicy` (Multi-Layer Perceptron):** This policy is for simple vector data (a flat list of numbers). When fed an image, it "flattens" it, losing all spatial information.
 
----
+Our test (Experiment 4.11) proved this:
 
-### 👨‍🔬 Member 1: "Learning Rate & Stability" Specialist
+  * **`CnnPolicy` (Run 4.1):** Achieved a stable score of **\~10.0**.
+  * **`MlpPolicy` (Run 4.11):** Performed significantly worse, scoring only **\~4.97**.
 
-**Reasoning:** This member's mission is to find the **single most important hyperparameter: the learning rate (`lr`)**. A `lr` that is too high will be unstable and fail to learn. A `lr` that is too low will learn too slowly. This group also tests how `batch_size` interacts with the learning rate, as larger batches often allow for higher learning rates.
+This confirms that a **`CnnPolicy` is essential** for an agent to understand and play `Breakout`.
 
-| Exp | Goal | `lr` | `batch_size` | Command to Run (`--steps 1000000`)... |
-| :--- | :--- | :--- | :--- | :--- |
-| **1.1** | Very Fast (Unstable?) | `0.001` | 32 | `--lr 0.001` |
-| **1.2** | Fast | `0.0005` | 32 | `--lr 0.0005` |
-| **1.3** | Slightly Fast | `0.00025` | 32 | `--lr 0.00025` |
-| **1.4** | **Baseline** | `0.0001` | 32 | ` ` (default) |
-| **1.5** | Slow | `0.00005` | 32 | `--lr 0.00005` |
-| **1.6** | Very Slow | `0.00001` | 32 | `--lr 0.00001` |
-| **1.7** | Large Batch | `0.0001` | `64` | `--batch_size 64` |
-| **1.8** | Larger Batch | `0.0001` | `128` | `--batch_size 128` |
-| **1.9** | *Interact:* Fast `lr` + Large Batch | `0.0005` | `128` | `--lr 0.0005 --batch_size 128` |
-| **1.10** | *Interact:* Slow `lr` + Small Batch | `0.00005` | `16` | `--lr 0.00005 --batch_size 16` |
 
----
 
-### 👨‍🔬 Member 2: "Exploration & Curiosity" Specialist
+## Hyperparameter Tuning & Results
 
-**Reasoning:** This member's mission is to find the **best exploration strategy**. How long should the agent be "curious" (controlled by `epsilon_decay`)? How much curiosity should it keep at the end (`epsilon_end`)? If it stops exploring too soon, it may never learn the best strategies. If it explores for too long, it may never stabilize and get a high score.
+We conducted 40 unique experiments, with each of our four group members acting as a " to analyze a specific set of parameters. All experiments were run for **250,000 steps** for a fair comparison.
 
-| Exp | Goal | `epsilon_decay` | `epsilon_end` | Command to Run (`--steps 1000000`)... |
-| :--- | :--- | :--- | :--- | :--- |
-| **2.1** | Very Fast Decay | `100000` | 0.05 | `--epsilon_decay 100000` |
-| **2.2** | **Baseline** | `250000` | 0.05 | ` ` (default) |
-| **2.3** | Slow Decay | `500000` | 0.05 | `--epsilon_decay 500000` |
-| **2.4** | Very Slow Decay | `750000` | 0.05 | `--epsilon_decay 750000` |
-| **2.5** | *Interact:* Fast Decay + No Final | `100000` | `0.01` | `--epsilon_decay 100000 --epsilon_end 0.01` |
-| **2.6** | *Interact:* Slow Decay + High Final | `500000` | `0.1` | `--epsilon_decay 500000 --epsilon_end 0.1` |
-| **2.7** | No Final Exploration | `250000` | `0.001` | `--epsilon_end 0.001` |
-| **2.8** | Low-Mid Final Expl. | `250000` | `0.025` | `--epsilon_end 0.025` |
-| **2.9** | High Final Expl. | `250000` | `0.1` | `--epsilon_end 0.1` |
-| **2.10** | Very High Final Expl. | `250000` | `0.15` | `--epsilon_end 0.15` |
+### Member 1: "Learning Rate & Stability"
 
----
+  * **Mission:** To find the optimal `learning_rate` (`lr`) and test its interaction with `batch_size`.
+  * **Table:**
 
-### 👨‍🔬 Member 3: "Long-Term Vision" Specialist
+| Exp | Key Hyperparameters | Final Avg. Reward (`ep_rew_mean`) | Analysis / Noted Behavior |
+| :-- | :--- | :--- | :--- |
+| 1.1 | `lr=0.001` | *[Member 1 to fill in]* | *[Member 1: Analyze stability. Did it crash?]* |
+| 1.2 | `lr=0.0005` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.3 | `lr=0.00025` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.4 | `lr=0.0001` (Baseline) | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.5 | `lr=0.00005` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.6 | `lr=0.00001` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.7 | `lr=0.0001`, `batch=64` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.8 | `lr=0.0001`, `batch=128` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.9 | `lr=0.0005`, `batch=128` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
+| 1.10 | `lr=0.00005`, `batch=16` | *[Member 1 to fill in]* | *[Member 1: Fill in]* |
 
-**Reasoning:** This member's mission is to find the **optimal discount factor (`gamma`)**. `gamma` controls how much the agent values future rewards. A low `gamma` makes the agent "short-sighted" (it only cares about immediate points). A high `gamma` makes it "long-sighted" (it's willing to sacrifice a point now to get 10 points later). This group also tests how `gamma` interacts with the learning rate.
+### Member 2: "Exploration & Curiosity"
 
-| Exp | Goal | `gamma` | `lr` | Command to Run (`--steps 1000000`)... |
-| :--- | :--- | :--- | :--- | :--- |
-| **3.1** | Short-Sighted | `0.9` | 0.0001 | `--gamma 0.9` |
-| **3.2** | Mid-Sighted | `0.95` | 0.0001 | `--gamma 0.95` |
-| **3.3** | Standard | `0.98` | 0.0001 | `--gamma 0.98` |
-| **3.4** | **Baseline** | `0.99` | 0.0001 | ` ` (default) |
-| **3.5** | Very Long-Sighted | `0.995` | 0.0001 | `--gamma 0.995` |
-| **3.6** | *Interact:* Fast `lr` + Short `gamma` | `0.95` | `0.0005` | `--gamma 0.95 --lr 0.0005` |
-| **3.7** | *Interact:* Fast `lr` + Long `gamma` | `0.99` | `0.0005` | `--gamma 0.99 --lr 0.0005` |
-| **3.8** | *Interact:* Slow `lr` + Short `gamma` | `0.95` | `0.00005` | `--gamma 0.95 --lr 0.00005` |
-| **3.9** | *Interact:* Slow `lr` + Long `gamma` | `0.99` | `0.00005` | `--gamma 0.99 --lr 0.00005` |
-| **3.10** | *Interact:* Fast `lr` + Very Short `gamma` | `0.9` | `0.0005` | `--gamma 0.9 --lr 0.0005` |
+  * **Mission:** To find the best exploration strategy by tuning `epsilon_decay` and `epsilon_end`.
+  * **Table:**
 
----
+| Exp | Key Hyperparameters | Final Avg. Reward (`ep_rew_mean`) | Analysis / Noted Behavior |
+| :-- | :--- | :--- | :--- |
+| 2.1 | `decay=100k` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.2 | `decay=250k` (Baseline) | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.3 | `decay=500k` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.4 | `decay=750k` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.5 | `decay=100k`, `end=0.01` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.6 | `decay=500k`, `end=0.1` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.7 | `end=0.001` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.8 | `end=0.025` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.9 | `end=0.1` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
+| 2.10 | `end=0.15` | *[Member 2 to fill in]* | *[Member 2: Fill in]* |
 
-### 👨‍🔬 Member 4: "Fine-Tuning" Specialist
+### Member 3: "Long-Term Vision"
 
-**Reasoning:** This member's mission is to **"zoom in"** on the most promising parameters from the other groups. Assuming the baseline `lr` and `epsilon_decay` are *close* to correct, this member will test a "grid" of values *around* them to find the "best of the best" combination. The final "Wildcard" test combines the most extreme "patient" settings from all groups.
+  * **Mission:** To find the optimal discount factor (`gamma`) and its interaction with `lr`.
+  * **Table:**
 
-| Exp | Goal | `lr` | `epsilon_decay` | Command to Run (`--steps 1000000`)... |
-| :--- | :--- | :--- | :--- | :--- |
-| **4.1** | **Baseline** | `0.0001` | `250000` | ` ` (default) |
-| **4.2** | Grid 1: Fast `lr` + Fast Decay | `0.00025` | `150000` | `--lr 0.00025 --epsilon_decay 150000` |
-| **4.3** | Grid 2: Fast `lr` + Base Decay | `0.00025` | `250000` | `--lr 0.00025` |
-| **4.4** | Grid 3: Fast `lr` + Slow Decay | `0.00025` | `400000` | `--lr 0.00025 --epsilon_decay 400000` |
-| **4.5** | Grid 4: Base `lr` + Fast Decay | `0.0001` | `150000` | `--epsilon_decay 150000` |
-| **4.6** | Grid 5: Base `lr` + Slow Decay | `0.0001` | `400000` | `--epsilon_decay 400000` |
-| **4.7** | Grid 6: Slow `lr` + Fast Decay | `0.00005` | `150000` | `--lr 0.00005 --epsilon_decay 150000` |
-| **4.8** | Grid 7: Slow `lr` + Base Decay | `0.00005` | `250000` | `--lr 0.00005` |
-| **4.9** | Grid 8: Slow `lr` + Slow Decay | `0.00005` | `400000` | `--lr 0.00005 --epsilon_decay 400000` |
-| **4.10** | **Wildcard:** "The Patient Agent" | `0.00005` | `750000` | `--lr 0.00005 --epsilon_decay 750000 --gamma 0.995` |
+| Exp | Key Hyperparameters | Final Avg. Reward (`ep_rew_mean`) | Analysis / Noted Behavior |
+| :-- | :--- | :--- | :--- |
+| 3.1 | `gamma=0.9` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.2 | `gamma=0.95` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.3 | `gamma=0.98` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.4 | `gamma=0.99` (Baseline) | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.5 | `gamma=0.995` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.6 | `gamma=0.95`, `lr=0.0005` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.7 | `gamma=0.99`, `lr=0.0005` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.8 | `gamma=0.95`, `lr=0.00005` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.9 | `gamma=0.99`, `lr=0.00005` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+| 3.10 | `gamma=0.9`, `lr=0.0005` | *[Member 3 to fill in]* | *[Member 3: Fill in]* |
+
+### Member 4: "Fine-Tuning" learning rate & epsilon decay
+
+  * **Mission:** To perform a "deep dive" grid search on the most promising `lr` and `epsilon_decay` values.
+  * **Table:**
+
+| Exp | Key Hyperparameters | Final Avg. Reward (`ep_rew_mean`) | Analysis / Noted Behavior |
+| :-- | :--- | :--- | :--- |
+| 4.1 | `lr=0.0001`, `decay=250k` (Baseline) | **\~10.0** | Agent's reward jumped to \~10 as the 250k exploration phase ended. Stable. |
+| 4.2 | `lr=0.0005`, `decay=150k` | **\~13.4** | **(Best Result)**. A faster `lr` (0.0005) and faster decay (150k) was stable and performed significantly better than the baseline. |
+| 4.3 | `lr=0.0005`, `decay=250k` | **\~12.4** | Good score, but slightly worse than 4.2. Suggests a fast `lr` pairs better with a fast decay. |
+| 4.4 | `lr=0.0005`, `decay=400k` | \~5.88 | Poor performance. The slow decay (400k) meant the agent was still exploring (`exploration_rate` = 0.407) when the run ended. |
+| 4.5 | `lr=0.00025`, `decay=150k` | **\~11.4** | A very stable, good result. Better than baseline, but not as high as the faster `lr` (0.0005). |
+| 4.6 | `lr=0.00025`, `decay=250k` | **\~11.4** | Identical to 4.5. Proves that for a "mid" `lr`, the decay speed (150k vs 250k) had no significant impact. |
+| 4.7 | `lr=0.00025`, `decay=400k` | \~4.98 | Poor performance, as predicted. Agent was still exploring (`exploration_rate` = 0.406) when the run ended. |
+| 4.8 | `lr=0.0001`, `decay=150k` | **\~10.3** | Stable run, almost identical to the baseline (4.1). |
+| 4.9 | `lr=0.0001`, `decay=400k` | \~5.19 | Poor performance. Confirms a slow decay (400k) is a bad strategy for a 250k step run. |
+| 4.10 | `lr=0.0005`, `decay=150k`, `gamma=0.98` | **\~13.4** | **(Tied for Best)**. Identical to 4.2. Proves that a small change in `gamma` (0.99 vs 0.98) had no impact on this optimal setup. |
+| 4.11 | `policy=MlpPolicy` | \~4.97 | **Proof of Concept.** Confirmed `MlpPolicy` is the wrong choice. It ran but scored 50% worse than the `CnnPolicy` baseline. |
+
+
+
+## Analysis & Key Findings
+
+From our combined 40 experiments, we will draw several conclusions. Based on the "Fine-Tuning" (Member 4) results, we have these key findings:
+
+1.  **The Learning Rate is a Dominant Factor:** A higher `lr` of `0.0005` (Run 4.2) performed significantly better than the baseline `0.0001` (Run 4.1), yielding a \~34% increase in average reward.
+2.  **Exploration Must Finish:** The `epsilon_decay` parameter must be set low enough to finish within the `total_steps`. In all runs where decay was set to 400k (e.g., 4.4, 4.7, 4.9), the agent was still exploring at the end, and performance was poor (scores of \~5).
+3.  **Optimal Pairing:** The best-performing combination was a **fast learning rate (`lr=0.0005`)** paired with a **fast exploration decay (`decay=150k`)**. This allowed the agent to learn quickly and then have a long "exploitation" phase (100,000 steps) to use its knowledge.
+4.  **`Gamma` is Not Sensitive (at high values):** The difference between `gamma=0.99` (Run 4.2) and `gamma=0.98` (Run 4.10) was negligible, with both achieving an identical score of \~13.4.
+
+
+
+## Final Model & Demonstration
+
+Based on our analysis, the best-performing model from all 40 experiments will be selected for the final demonstration.
+
+  * **Best Model:** `models/policy-CnnPolicy_lr-0.0005_gamma-0.99_batch-32_eps_start-1.0_eps_end-0.05_eps_decay-150000.zip`
+  * **Demonstration Video:** `[Video Demo](link to the video)`
+
+
+## Group Contributions
+
+  * **Member 1:** `Christian Iradukunda Byiringiro`
+  * **Member 2:** `Marion Mwangi`
+  * **Member 3:** `Irenee Dusingizimana`
+  * **Member 4:** `Christope Gakwaya`
