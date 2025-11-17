@@ -143,16 +143,16 @@ We conducted 40 unique experiments, with each of our four group members acting a
 
 | Exp  | Key Hyperparameters                | Final Avg. Reward | Analysis / Notes |
 |------|-----------------------------------|------------------|------------------|
-| 1.1  | lr = 0.001               | 0.5              | Likely unstable and overshoots gradients. Expected inconsistent learning. Needs testing. |
-| 1.2  | lr = 0.0005, batch = 64  | 3.6              | Best performance so far. Strong learning progress. Recommended candidate. |
-| 1.3  | lr = 0.00025, batch = 64 | 1.6              | Stable but slower improvements. Could improve with 1M+ steps. |
+| 1.1  | lr = 0.001               | 0.5              | Unstable and overshoots gradients. |
+| 1.2  | lr = 0.0005, batch = 64  | 3.6              | Best performance so far. Strong learning progress. |
+| 1.3  | lr = 0.00025, batch = 64 | 1.6              | Stable but slower improvements. Could improve with more steps. |
 | 1.4  | lr = 0.0001, batch = 64  | 1.4              | Stable baseline learning, but underfitting at 500k steps. |
 | 1.5  | lr = 0.00005, batch = 64 | 0.2              | Learning rate too small, almost no learning. |
 | 1.6  | lr = 0.00001             | 0.1              | Expected to fail learning due to extremely tiny updates. |
-| 1.7  | lr = 0.0001, batch = 64  | 1.4              | Same configuration as Exp 1.4. Matching performance. |
+| 1.7  | lr = 0.005, batch = 64   | 1.5              | Good performance but still not the best. |
 | 1.8  | lr = 0.0001, batch = 128 | 1.2              | Larger batch reduced exploration and slowed learning. |
 | 1.9  | lr = 0.0005, batch = 128 | 2.4              | Good performance but slower learning than batch 64. |
-| 1.10 | lr = 0.00005, batch = 16 | 0.3              | Small batch helps exploration but lr is still too low. |
+| 1.10 | lr = 0.00005, batch = 16 | 0.3              | Small batch helps exploration, but lr is still too low. |
 
 
 ### Member 2: "Exploration & Curiosity"
