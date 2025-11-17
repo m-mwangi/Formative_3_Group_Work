@@ -38,8 +38,8 @@ def parse_args():
                         help='Number of timesteps to decay epsilon (default: 250,000)')
 
     # Training Parameters
-    parser.add_argument('--steps', type=int, default=1000000, 
-                        help='Total number of training timesteps (default: 1,000,000)')
+    parser.add_argument('--steps', type=int, default=100000, 
+                        help='Total number of training timesteps (default: 100,000)')
     parser.add_argument('--n_envs', type=int, default=4, 
                         help='Number of parallel environments to run (default: 4)')
     
