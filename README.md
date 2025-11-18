@@ -329,7 +329,7 @@ Based on our comprehensive analysis of all 40 experiments conducted at 250,000 t
 
 ### Demonstration Video
 
-**[🎥 Watch the Trained Agent Playing Breakout](link-to-your-video)**
+**[🎥 Watch the Trained Agent Playing Breakout](https://www.youtube.com/watch?v=63f5TrGKYt4)**
 
 *The video demonstrates our champion agent achieving high scores through learned behaviors including precise paddle positioning, strategic brick targeting, and effective ball tracking.*
 
